@@ -1,0 +1,79 @@
+PI = 3.14159265359;
+scSizeX = 800.0 : scSizeY = 800.0;
+ringsRad = 200.0;
+ringsSizeH = 70.0;
+eyeRingSizeXH = (scSizeX / 2.0) * (1.0 / 4.0);
+eyeRingSizeYH = 50.0;
+eyeRedSizeH = 35.0;
+eyeBlackSizeH = eyeRedSizeH / 2.5;
+eyeCenterX = scSizeX / 2.0;
+eyeCenterY = scSizeY / 2.0;
+frameCount = 0.0;
+touchingEye = 0;
+ended = 0;
+screen 0, scSizeX, scSizeY : title "Dark Matter";
+
+*MAIN
+	await 16;
+	redraw 0;
+	color 20, 0, 100;
+	boxf
+
+	//Line of sight
+	if ended = 1 : goto *FINAL;
+	eyeCenterX = mousex;
+	eyeCenterY = mousey;
+	limitX = eyeRingSizeYH + 30.0 - eyeRedSizeH;
+	limitY = eyeRingSizeYH - eyeRedSizeH;
+	if ((eyeCenterX >= -limitX + scSizeX / 2.0) && (eyeCenterY >= -limitY + scSizeY / 2.0) && (limitX + scSizeX / 2.0 >= eyeCenterX) && (limitY + scSizeY / 2.0 >= eyeCenterY)) : touchingEye = 1 : goto *LIMIT_END;
+	touchingEye = 0;
+	limR = atan(eyeCenterY - scSizeY / 2.0, eyeCenterX - scSizeX / 2.0);
+	eyeCenterX = cos(limR) * limitX + scSizeX / 2.0;
+	eyeCenterY = sin(limR) * limitY + scSizeY / 2.0;
+	goto *LIMIT_END
+
+*FINAL
+	eyeCenterX = scSizeX / 2.0;
+	eyeCenterY = scSizeY / 2.0;
+	eyeBlackSizeH = eyeRedSizeH / 5.0;
+	eyeRingSizeYH = 80.0;
+
+*LIMIT_END	
+	//Body
+	if ended = 1 : goto *RING_SKIP;
+	i = frameCount * ((2.0 * PI) / (60 * 10));
+	while i <= 2.0 * PI + frameCount * ((2.0 * PI) / (60 * 10))
+	i += 2.0 * PI / 12.0;
+	color 219, 107, 29
+	circle cos(i) * ringsRad - ringsSizeH + (scSizeX / 2), sin(i) * ringsRad - ringsSizeH + (scSizeY / 2), cos(i) * ringsRad + ringsSizeH + (scSizeX / 2), sin(i) * ringsRad + ringsSizeH + (scSizeY / 2);
+	color 0, 0, 0
+	circle cos(i) * ringsRad - ringsSizeH + (scSizeX / 2), sin(i) * ringsRad - ringsSizeH + (scSizeY / 2), cos(i) * ringsRad + ringsSizeH + (scSizeX / 2), sin(i) * ringsRad + ringsSizeH + (scSizeY / 2), 0; 
+	circle cos(i) * ringsRad - (ringsSizeH + 1) + (scSizeX / 2), sin(i) * ringsRad - (ringsSizeH + 1) + (scSizeY / 2), cos(i) * ringsRad + (ringsSizeH + 1) + (scSizeX / 2), sin(i) * ringsRad + (ringsSizeH + 1) + (scSizeY / 2), 0;
+	circle cos(i) * ringsRad - (ringsSizeH + 2) + (scSizeX / 2), sin(i) * ringsRad - (ringsSizeH + 2) + (scSizeY / 2), cos(i) * ringsRad + (ringsSizeH + 2) + (scSizeX / 2), sin(i) * ringsRad + (ringsSizeH + 2) + (scSizeY / 2), 0;
+	wend
+*RING_SKIP
+	color 0, 0, 0;
+	circle scSizeX / 4, scSizeY / 4, scSizeX / 4 * 3, scSizeY / 4 * 3;
+
+	//Eye
+	color 255, 255, 255;
+	circle -eyeRingSizeXH + scSizeX / 2.0, -eyeRingSizeYH + scSizeY / 2.0, eyeRingSizeXH + scSizeX / 2.0, eyeRingSizeYH + scSizeY / 2.0;
+	color 155, 0, 0;
+	if ended = 1 : color 0, 0, 0
+	circle -eyeRedSizeH + eyeCenterX, -eyeRedSizeH + eyeCenterY, eyeRedSizeH + eyeCenterX, eyeRedSizeH + eyeCenterY;
+	color 0, 0, 0;
+	circle -eyeBlackSizeH + eyeCenterX, -eyeBlackSizeH + eyeCenterY, eyeBlackSizeH + eyeCenterX, eyeBlackSizeH + eyeCenterY;
+	color 255, 255, 255;
+	if ended = 0 : circle -2.0 + eyeCenterX +5.0, -5.0 + eyeCenterY - 5.0, 5.0 + eyeCenterX + 5.0, 2.0 + eyeCenterY - 5.0;
+
+	onclick gosub *CLICK_EYE;
+
+	frameCount += 1.0;
+	redraw 1;
+
+	if ended = 1 : await 500 : end
+	goto *MAIN
+
+*CLICK_EYE
+	if touchingEye = 1 : ended = 1;
+	return;
